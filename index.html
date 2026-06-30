@@ -840,6 +840,19 @@
 </section>
 
 
+<!-- ===== TRADE ANIMATION 8-CHART ===== -->
+<section style="background: var(--bg); padding: 60px 20px 40px;">
+  <div class="container">
+    <div class="section-label">LIVE IMAGE</div>
+    <h2 class="section-title">これが<span>天照の動き</span></h2>
+    <div class="divider"></div>
+    <p class="section-desc">8通貨ペアが同時に稼働。エントリー・ナンピン・一斉決済を繰り返すスピードとパワーを体感してください。</p>
+    <canvas id="tradeCanvas" style="display:block;width:100%;max-width:920px;margin:0 auto;border-radius:10px;border:1px solid rgba(201,168,76,0.18);cursor:pointer;" title="クリックでリスタート"></canvas>
+    <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:12px;">※ イメージアニメーションです。実際の取引画面ではありません</p>
+  </div>
+</section>
+
+
 <!-- ===== VISION ===== -->
 <section style="background: var(--bg); padding: 100px 20px;">
   <div class="container">
@@ -1115,17 +1128,6 @@
 </section>
 
 
-<!-- ===== TRADE ANIMATION ===== -->
-<section style="background: var(--bg2); padding: 80px 20px;">
-  <div class="container">
-    <div class="section-label">LIVE IMAGE</div>
-    <h2 class="section-title">これが<span>天照の動き</span></h2>
-    <div class="divider"></div>
-    <p class="section-desc">エントリー・ナンピン・一斉決済。そのスピードと勢いをイメージしてください。</p>
-    <canvas id="tradeCanvas" style="display:block;width:100%;max-width:920px;margin:0 auto;border-radius:10px;border:1px solid rgba(201,168,76,0.18);cursor:pointer;" title="クリックでリスタート"></canvas>
-    <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:12px;">※ イメージアニメーションです。実際の取引画面ではありません</p>
-  </div>
-</section>
 
 
 <!-- ===== LOGIC ===== -->
@@ -1166,6 +1168,12 @@
         .logic-grid { grid-template-columns: 1fr !important; }
       }
     </style>
+
+    <div style="margin-top:60px;">
+      <canvas id="tradeCanvas2" style="display:block;width:100%;max-width:900px;margin:0 auto;border-radius:14px;border:1px solid rgba(201,168,76,0.25);cursor:pointer;" title="クリックでリスタート"></canvas>
+      <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:10px;">※ イメージアニメーションです。実際の取引画面ではありません</p>
+    </div>
+
   </div>
 </section>
 
@@ -2094,6 +2102,153 @@
       for(let i=1;i<ROWS;i++){const y=i*(CH+GAP)-1;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(TW,y);ctx.stroke();}
       requestAnimationFrame(loop);
     }
+    loop();
+  })();
+
+  // ===== SINGLE TRADE ANIMATION (tradeCanvas2) =====
+  (function() {
+    const canvas = document.getElementById('tradeCanvas2');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const GOLD='#c9a84c', GOLD_L='#f0d080', GREEN='#26a69a', RED='#ef5350';
+    let W, H;
+    function resize() {
+      W = Math.min(canvas.parentElement.offsetWidth||800, 900);
+      H = Math.round(W * 0.44);
+      canvas.width = W; canvas.height = H;
+    }
+    let priceY, candles, entries, particles, floatTexts, flashR, flashX, flashY;
+    let phase, phaseF, direction, frame, currentOpen, candleF;
+    const CW=10, CG=3, CF=4;
+    function init() {
+      resize();
+      priceY=H*0.45; candles=[]; entries=[]; particles=[]; floatTexts=[];
+      flashR=0; phase='build'; phaseF=0; frame=0;
+      direction=Math.random()>0.5?1:-1; currentOpen=priceY; candleF=0;
+    }
+    init();
+    canvas.addEventListener('click', init);
+    window.addEventListener('resize', init);
+    function movePrice() {
+      let dy=0;
+      if(phase==='build') dy=-direction*(Math.random()*4+1.5)+(Math.random()-0.5)*5;
+      else if(phase==='against') dy=direction*(Math.random()*5+2)+(Math.random()-0.5)*4;
+      else if(phase==='reverse') dy=-direction*(Math.random()*14+10);
+      else dy=(Math.random()-0.5)*4;
+      priceY=Math.max(H*0.06,Math.min(H*0.94,priceY+dy));
+    }
+    function burst(x,y,n,col) {
+      for(let i=0;i<n;i++){
+        const a=Math.PI*2*i/n+Math.random()*0.5, s=3+Math.random()*5;
+        particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,d:0.016+Math.random()*0.012,sz:2+Math.random()*3,col});
+      }
+    }
+    function update() {
+      frame++; phaseF++; candleF++;
+      movePrice();
+      if(candleF>=CF){
+        candles.push({o:currentOpen,c:priceY,h:Math.min(currentOpen,priceY)-Math.random()*4,l:Math.max(currentOpen,priceY)+Math.random()*4});
+        currentOpen=priceY; candleF=0;
+      }
+      const ex=W-70;
+      if(phase==='build'){
+        if(phaseF===28&&!entries.length) entries.push({y:priceY,type:direction>0?'buy':'sell',alpha:0,x:ex});
+        if(phaseF>65){phase='against';phaseF=0;}
+      } else if(phase==='against'){
+        if(phaseF%26===0&&entries.length<5){
+          entries.push({y:priceY,type:direction>0?'buy':'sell',alpha:0,x:ex-entries.length*14});
+          burst(ex,priceY,8,GOLD);
+        }
+        if(entries.length>=4||phaseF>120){phase='reverse';phaseF=0;}
+      } else if(phase==='reverse'){
+        if(phaseF>22){phase='close';phaseF=0;}
+      } else if(phase==='close'){
+        if(phaseF===1){
+          flashR=1;flashX=ex;flashY=H/2;
+          burst(ex,H/2,32,GOLD_L);
+          const pct=15+entries.length*9+Math.floor(Math.random()*12);
+          floatTexts.push({x:ex,y:H/2-10,text:`+${pct}%　決済！`,sz:20+entries.length*3,life:1});
+          entries=[];
+        }
+        if(phaseF>85){phase='build';phaseF=0;direction*=-1;}
+      }
+      entries.forEach(e=>{e.alpha=Math.min(1,e.alpha+0.1);});
+      particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.13;p.life-=p.d;});
+      particles=particles.filter(p=>p.life>0);
+      floatTexts.forEach(t=>{t.y-=1.2;t.life-=0.009;});
+      floatTexts=floatTexts.filter(t=>t.life>0);
+      if(flashR>0)flashR-=0.032;
+    }
+    function draw() {
+      ctx.fillStyle='#060710'; ctx.fillRect(0,0,W,H);
+      ctx.strokeStyle='rgba(201,168,76,0.05)'; ctx.lineWidth=1;
+      for(let i=1;i<5;i++){ctx.beginPath();ctx.moveTo(0,H*i/5);ctx.lineTo(W,H*i/5);ctx.stroke();}
+      const vis=Math.floor((W-90)/(CW+CG));
+      const sl=Math.max(0,candles.length-vis);
+      candles.slice(sl).forEach((c,i)=>{
+        const x=i*(CW+CG)+8, up=c.c<=c.o;
+        ctx.fillStyle=ctx.strokeStyle=up?GREEN:RED; ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.moveTo(x+CW/2,c.h);ctx.lineTo(x+CW/2,c.l);ctx.stroke();
+        ctx.fillRect(x,Math.min(c.o,c.c),CW,Math.max(Math.abs(c.c-c.o),2));
+      });
+      const fx=Math.min(candles.length,vis-1)*(CW+CG)+8;
+      ctx.globalAlpha=0.65; ctx.fillStyle=priceY<=currentOpen?GREEN:RED;
+      ctx.fillRect(fx,Math.min(currentOpen,priceY),CW,Math.max(Math.abs(priceY-currentOpen),2));
+      ctx.globalAlpha=1;
+      ctx.strokeStyle='rgba(201,168,76,0.35)'; ctx.lineWidth=1; ctx.setLineDash([3,5]);
+      ctx.beginPath();ctx.moveTo(0,priceY);ctx.lineTo(W-56,priceY);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=GOLD; ctx.fillRect(W-54,priceY-10,50,20);
+      ctx.fillStyle='#000'; ctx.font='bold 10px monospace'; ctx.textAlign='center';
+      ctx.fillText((1.14+(H/2-priceY)*0.0008).toFixed(4),W-29,priceY+4);
+      ctx.strokeStyle='rgba(201,168,76,0.12)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      ctx.beginPath();ctx.moveTo(W-85,0);ctx.lineTo(W-85,H);ctx.stroke();
+      ctx.setLineDash([]);
+      if(entries.length>1){
+        ctx.strokeStyle='rgba(201,168,76,0.28)'; ctx.lineWidth=1; ctx.setLineDash([3,5]);
+        ctx.beginPath();entries.forEach((e,i)=>i===0?ctx.moveTo(e.x,e.y):ctx.lineTo(e.x,e.y));
+        ctx.stroke(); ctx.setLineDash([]);
+      }
+      entries.forEach((e,idx)=>{
+        ctx.globalAlpha=e.alpha;
+        const grd=ctx.createRadialGradient(e.x,e.y,0,e.x,e.y,22);
+        grd.addColorStop(0,'rgba(201,168,76,0.3)');grd.addColorStop(1,'rgba(201,168,76,0)');
+        ctx.fillStyle=grd;ctx.beginPath();ctx.arc(e.x,e.y,22,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=GOLD;ctx.shadowColor=GOLD;ctx.shadowBlur=10;
+        ctx.beginPath();
+        if(e.type==='buy'){ctx.moveTo(e.x,e.y-10);ctx.lineTo(e.x-7,e.y+5);ctx.lineTo(e.x+7,e.y+5);}
+        else{ctx.moveTo(e.x,e.y+10);ctx.lineTo(e.x-7,e.y-5);ctx.lineTo(e.x+7,e.y-5);}
+        ctx.closePath();ctx.fill();ctx.shadowBlur=0;
+        const pulse=(Math.sin(frame*0.13+idx*1.4)+1)*0.5;
+        ctx.strokeStyle=`rgba(201,168,76,${0.15+pulse*0.45})`;ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.arc(e.x,e.y,13+pulse*8,0,Math.PI*2);ctx.stroke();
+        ctx.fillStyle=GOLD;ctx.font='bold 9px monospace';ctx.textAlign='left';
+        ctx.fillText(e.type==='buy'?'BUY▲':'SELL▼',e.x+14,e.y+4);
+        ctx.globalAlpha=1;
+      });
+      if(flashR>0){
+        const r=(1-flashR)*W*0.55;
+        const grd=ctx.createRadialGradient(flashX,flashY,0,flashX,flashY,r);
+        grd.addColorStop(0,`rgba(240,208,128,${flashR*0.75})`);
+        grd.addColorStop(0.4,`rgba(201,168,76,${flashR*0.3})`);
+        grd.addColorStop(1,'rgba(201,168,76,0)');
+        ctx.fillStyle=grd;ctx.beginPath();ctx.arc(flashX,flashY,r,0,Math.PI*2);ctx.fill();
+      }
+      particles.forEach(p=>{ctx.globalAlpha=p.life;ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,Math.PI*2);ctx.fill();});
+      ctx.globalAlpha=1;
+      floatTexts.forEach(t=>{
+        ctx.globalAlpha=t.life;ctx.fillStyle=GOLD_L;
+        ctx.font=`bold ${t.sz}px 'Noto Sans JP',sans-serif`;ctx.textAlign='center';
+        ctx.shadowColor=GOLD;ctx.shadowBlur=14;ctx.fillText(t.text,t.x,t.y);ctx.shadowBlur=0;
+      });ctx.globalAlpha=1;
+      ctx.fillStyle='rgba(201,168,76,0.4)'; ctx.font='10px monospace'; ctx.textAlign='left';
+      ctx.fillText('EUR/USD  M5  EA-天照-',10,18);
+      const pl={build:'▶ エントリー',against:'↕ ナンピン中',reverse:'⚡ 反転！',close:'✓ 一斉決済！'}[phase]||'';
+      ctx.textAlign='right';
+      ctx.fillStyle=phase==='reverse'||phase==='close'?GOLD_L:'rgba(201,168,76,0.55)';
+      ctx.fillText(pl,W-10,18);
+    }
+    function loop(){update();draw();requestAnimationFrame(loop);}
     loop();
   })();
 
