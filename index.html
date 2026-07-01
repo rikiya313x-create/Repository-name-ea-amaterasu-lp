@@ -952,6 +952,48 @@
     </div>
 
 
+    <!-- ===== CALENDAR SLIDER ===== -->
+    <div style="margin: 60px 0 20px;" class="fade-in">
+      <div style="text-align:center; margin-bottom:28px;">
+        <div class="section-label" style="margin-bottom:10px;">Real Records</div>
+        <h3 style="font-size:clamp(1.2rem,3vw,1.7rem); font-weight:900; color:var(--text);">3年間の<span style="color:var(--gold);">REALTRADE収益カレンダー</span></h3>
+        <div class="divider" style="margin:14px auto;"></div>
+        <p style="font-size:0.88rem; color:var(--text-muted);">2023年1月〜2025年12月　実際の月次収益記録（第三者機関REALTRADE）</p>
+      </div>
+
+      <div style="position:relative; max-width:860px; margin:0 auto;">
+        <div style="overflow:hidden; border-radius:12px; border:1px solid rgba(201,168,76,0.25); background:#fff;" id="calSlider">
+          <img id="calImg" src="calendar/calendar_219.png" style="width:100%; display:block;">
+        </div>
+
+        <!-- Prev -->
+        <button onclick="calMove(-1)" style="position:absolute;left:-22px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);color:var(--gold);font-size:1.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.35)'" onmouseout="this.style.background='rgba(201,168,76,0.15)'">&#8249;</button>
+
+        <!-- Next -->
+        <button onclick="calMove(1)" style="position:absolute;right:-22px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);color:var(--gold);font-size:1.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.35)'" onmouseout="this.style.background='rgba(201,168,76,0.15)'">&#8250;</button>
+
+        <div id="calCounter" style="text-align:center;margin-top:12px;font-size:0.8rem;color:var(--text-muted);"></div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      const total = 37;
+      const start = 219;
+      let cur = 0;
+      const img = document.getElementById('calImg');
+      const counter = document.getElementById('calCounter');
+      function update(){
+        img.style.opacity='0';
+        setTimeout(function(){ img.src='calendar/calendar_'+(start+cur)+'.png'; img.style.opacity='1'; }, 150);
+        counter.textContent = (cur+1) + ' / ' + total;
+      }
+      img.style.transition='opacity 0.15s';
+      window.calMove = function(d){ cur=(cur+d+total)%total; update(); };
+      update();
+    })();
+    </script>
+
     <div class="timeline fade-in">
       <div class="timeline-item">
         <div class="timeline-year">2017年3月</div>
